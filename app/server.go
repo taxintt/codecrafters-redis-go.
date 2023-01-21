@@ -5,21 +5,42 @@ import (
 	"log"
 	"net"
 	"os"
+	"regexp"
+	"strconv"
+	"strings"
 )
 
-func makeReponse(conn net.Conn) {
-	buffer := make([]byte, 1024)
+var rexLeadingDigits = regexp.MustCompile(`\d+`)
+var isSinglePing = func(array []string) bool {
+	rex := rexLeadingDigits.Copy()
+	argsLength, _ := strconv.Atoi(rex.FindString(array[0]))
+	return argsLength == 1
+}
+
+func handleRequest(conn net.Conn) {
 	defer conn.Close()
 
-	n, err := conn.Read(buffer)
-	if err != nil {
+	var buffer []byte
+	if n, err := conn.Read(buffer); err != nil {
 		log.Println(n, "read error", err)
 	}
-	fmt.Println(string(buffer))
 
-	_, err = conn.Write([]byte("+PONG\r\n"))
-	if err != nil {
+	args := strings.Split(string(buffer), "\n")
+	if isSinglePing(args) {
+		if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
+			fmt.Println("Error writing data: ", err.Error())
+			os.Exit(1)
+		}
 		return
+	}
+
+	for i := 4; i < len(args); i += 2 {
+		fmt.Printf("1) %#v\n", args[i])
+		if _, err := conn.Write([]byte("+" + args[i] + "\n")); err != nil {
+			fmt.Println("Error writing data: ", err.Error())
+			os.Exit(1)
+		}
+		continue
 	}
 }
 
@@ -39,6 +60,6 @@ func main() {
 			fmt.Println("Error accepting connection: ", err.Error())
 			os.Exit(1)
 		}
-		go makeReponse(conn)
+		go handleRequest(conn)
 	}
 }
