@@ -2,17 +2,24 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"os"
 )
 
-func echoPong(conn net.Conn) {
+func makeReponse(conn net.Conn) {
+	buffer := make([]byte, 1024)
 	defer conn.Close()
-	for {
-		_, err := conn.Write([]byte("+PONG\r\n"))
-		if err != nil {
-			return
-		}
+
+	n, err := conn.Read(buffer)
+	if err != nil {
+		log.Println(n, "read error", err)
+	}
+	fmt.Println(string(buffer))
+
+	_, err = conn.Write([]byte("+PONG\r\n"))
+	if err != nil {
+		return
 	}
 }
 
@@ -32,6 +39,6 @@ func main() {
 			fmt.Println("Error accepting connection: ", err.Error())
 			os.Exit(1)
 		}
-		go echoPong(conn)
+		go makeReponse(conn)
 	}
 }
