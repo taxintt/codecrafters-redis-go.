@@ -7,8 +7,6 @@ import (
 	"os"
 	"regexp"
 	"strconv"
-	"strings"
-	"time"
 )
 
 var rexLeadingDigits = regexp.MustCompile(`\d+`)
@@ -24,7 +22,7 @@ func handleRequest(conn net.Conn) {
 
 	// multiple request
 	for {
-		buffer := make([]byte, 1500)
+		// buffer := make([]byte, 1500)
 		if _, err := conn.Read(buffer); err != nil {
 			neterr, ok := err.(net.Error)
 			if ok && neterr.Timeout() {
@@ -37,32 +35,35 @@ func handleRequest(conn net.Conn) {
 			panic(err)
 		}
 
-		args := strings.Split(string(buffer), "\n")
-
-		// simple string case
-		if isSimplePing(args) {
-			if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
-				fmt.Println("Error writing data: ", err.Error())
-				os.Exit(1)
-			}
-			return
-		}
-
-		// bulk string case
-		fmt.Println("bulk string case")
-		var resultArray []string
-		for i := 3; i < len(args)-1; i++ {
-			responseItem := args[i] + "\n"
-			resultArray = append(resultArray, responseItem)
-		}
-
-		allItems := strings.Join(resultArray, "")
-		if _, err := conn.Write([]byte(allItems)); err != nil {
+		if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
 			fmt.Println("Error writing data: ", err.Error())
 			os.Exit(1)
 		}
 
-		fmt.Println("aaaaaaaaa")
+		// args := strings.Split(string(buffer), "\n")
+
+		// simple string case
+		// if isSimplePing(args) {
+		// 	if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
+		// 		fmt.Println("Error writing data: ", err.Error())
+		// 		os.Exit(1)
+		// 	}
+		// 	return
+		// }
+
+		// bulk string case
+		// fmt.Println("bulk string case")
+		// var resultArray []string
+		// for i := 3; i < len(args)-1; i++ {
+		// 	responseItem := args[i] + "\n"
+		// 	resultArray = append(resultArray, responseItem)
+		// }
+
+		// allItems := strings.Join(resultArray, "")
+		// if _, err := conn.Write([]byte(allItems)); err != nil {
+		// 	fmt.Println("Error writing data: ", err.Error())
+		// 	os.Exit(1)
+		// }
 	}
 }
 
@@ -79,8 +80,6 @@ func main() {
 	for {
 		// multiple connection
 		conn, err := listener.Accept()
-		conn.SetReadDeadline(time.Now().Add(60 * time.Second))
-
 		if err != nil {
 			fmt.Println("Error accepting connection: ", err.Error())
 			os.Exit(1)
