@@ -22,7 +22,7 @@ func handleRequest(conn net.Conn) {
 
 	// multiple request
 	for {
-		// buffer := make([]byte, 1500)
+		buffer := make([]byte, 1500)
 		if _, err := conn.Read(buffer); err != nil {
 			neterr, ok := err.(net.Error)
 			if ok && neterr.Timeout() {
