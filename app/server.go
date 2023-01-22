@@ -23,14 +23,16 @@ func isSimplePing(array []string) bool {
 func handleRequest(conn net.Conn) {
 	defer conn.Close()
 
+	// multiple request
 	for {
 		buffer := make([]byte, 1500)
 		if _, err := conn.Read(buffer); err != nil {
-			neterr, ok := err.(net.Error) // ダウンキャスト
+			neterr, ok := err.(net.Error)
 			if ok && neterr.Timeout() {
-				fmt.Println("timeout!")
+				fmt.Println("Error: timeout error")
 				break
 			} else if err == io.EOF {
+				fmt.Println("Error: io.EOF error")
 				break
 			}
 			panic(err)
@@ -48,6 +50,7 @@ func handleRequest(conn net.Conn) {
 		}
 
 		// bulk string case
+		fmt.Println("bulk string case")
 		var resultArray []string
 		for i := 3; i < len(args)-1; i++ {
 			responseItem := args[i] + "\n"
@@ -73,6 +76,7 @@ func main() {
 	}
 
 	for {
+		// multiple connection
 		conn, err := listener.Accept()
 		conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 
