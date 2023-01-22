@@ -39,6 +39,8 @@ func handleRequest(conn net.Conn) {
 		return
 	}
 
+	conn.Close()
+
 	// bulk string case
 	// var resultArray []string
 	// for i := 3; i < len(args)-1; i++ {
