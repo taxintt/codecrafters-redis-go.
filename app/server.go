@@ -28,6 +28,7 @@ func handleRequest(conn net.Conn) {
 	}
 
 	args := strings.Split(string(buffer), "\n")
+	fmt.Println(string(buffer))
 
 	// simple string case
 	if isSimplePing(args) {
@@ -39,17 +40,17 @@ func handleRequest(conn net.Conn) {
 	}
 
 	// bulk string case
-	var resultArray []string
-	for i := 3; i < len(args)-1; i++ {
-		responseItem := args[i] + "\n"
-		resultArray = append(resultArray, responseItem)
-	}
+	// var resultArray []string
+	// for i := 3; i < len(args)-1; i++ {
+	// 	responseItem := args[i] + "\n"
+	// 	resultArray = append(resultArray, responseItem)
+	// }
 
-	allItems := strings.Join(resultArray, "")
-	if _, err := conn.Write([]byte(allItems)); err != nil {
-		fmt.Println("Error writing data: ", err.Error())
-		os.Exit(1)
-	}
+	// allItems := strings.Join(resultArray, "")
+	// if _, err := conn.Write([]byte(allItems)); err != nil {
+	// 	fmt.Println("Error writing data: ", err.Error())
+	// 	os.Exit(1)
+	// }
 }
 
 func main() {
