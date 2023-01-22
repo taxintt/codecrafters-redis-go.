@@ -30,6 +30,7 @@ func handleRequest(conn net.Conn) {
 
 	args := strings.Split(string(buffer), "\n")
 
+	// simple string case
 	if isSimplePing(args) {
 		if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
 			fmt.Println("Error writing data: ", err.Error())
@@ -38,6 +39,7 @@ func handleRequest(conn net.Conn) {
 		return
 	}
 
+	// bulk string case
 	var resultArray []string
 	for i := 3; i < len(args)-1; i++ {
 		responseItem := args[i] + "\n"
