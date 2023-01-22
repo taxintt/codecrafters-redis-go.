@@ -25,7 +25,17 @@ func handleRequest(conn net.Conn) {
 	// multiple request
 	for {
 		buffer := make([]byte, 1500)
-		_, err := conn.Read(buffer)
+		if _, err := conn.Read(buffer); err != nil {
+			neterr, ok := err.(net.Error)
+			if ok && neterr.Timeout() {
+				fmt.Println("Error: timeout error")
+				break
+			} else if err == io.EOF {
+				fmt.Println("Error: io.EOF error")
+				break
+			}
+			panic(err)
+		}
 
 		args := strings.Split(string(buffer), "\n")
 
@@ -52,18 +62,7 @@ func handleRequest(conn net.Conn) {
 			os.Exit(1)
 		}
 
-		// process before checking EOF
-		if err != nil {
-			neterr, ok := err.(net.Error)
-			if ok && neterr.Timeout() {
-				fmt.Println("Error: timeout error")
-				break
-			} else if err == io.EOF {
-				fmt.Println("Error: io.EOF error")
-				break
-			}
-			panic(err)
-		}
+		fmt.Println("aaaaaaaaa")
 	}
 }
 
