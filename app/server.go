@@ -21,7 +21,6 @@ func isSimplePing(array []string) bool {
 func handleRequest(conn net.Conn) {
 	defer conn.Close()
 
-	// var buffer []byteではだめ
 	buffer := make([]byte, 50000)
 
 	if n, err := conn.Read(buffer); err != nil {
