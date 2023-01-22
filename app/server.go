@@ -20,16 +20,12 @@ func isSimplePing(array []string) bool {
 }
 
 func handleRequest(conn net.Conn) {
-	defer conn.Close()
-
-	buffer := make([]byte, 50000)
-
+	buffer := make([]byte, 1500)
 	if n, err := conn.Read(buffer); err != nil {
 		log.Println(n, "read error", err)
 	}
 
 	args := strings.Split(string(buffer), "\n")
-	fmt.Println(string(buffer))
 
 	// simple string case
 	if isSimplePing(args) {
@@ -40,20 +36,18 @@ func handleRequest(conn net.Conn) {
 		return
 	}
 
-	conn.Close()
-
 	// bulk string case
-	// var resultArray []string
-	// for i := 3; i < len(args)-1; i++ {
-	// 	responseItem := args[i] + "\n"
-	// 	resultArray = append(resultArray, responseItem)
-	// }
+	var resultArray []string
+	for i := 3; i < len(args)-1; i++ {
+		responseItem := args[i] + "\n"
+		resultArray = append(resultArray, responseItem)
+	}
 
-	// allItems := strings.Join(resultArray, "")
-	// if _, err := conn.Write([]byte(allItems)); err != nil {
-	// 	fmt.Println("Error writing data: ", err.Error())
-	// 	os.Exit(1)
-	// }
+	allItems := strings.Join(resultArray, "")
+	if _, err := conn.Write([]byte(allItems)); err != nil {
+		fmt.Println("Error writing data: ", err.Error())
+		os.Exit(1)
+	}
 }
 
 func main() {
@@ -68,6 +62,8 @@ func main() {
 
 	for {
 		conn, err := listener.Accept()
+		defer conn.Close()
+
 		if err != nil {
 			fmt.Println("Error accepting connection: ", err.Error())
 			os.Exit(1)
