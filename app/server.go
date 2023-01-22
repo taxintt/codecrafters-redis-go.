@@ -15,6 +15,7 @@ var rexLeadingDigits = regexp.MustCompile(`\d+`)
 func isSimplePing(array []string) bool {
 	rex := rexLeadingDigits.Copy()
 	argsLength, _ := strconv.Atoi(rex.FindString(array[0]))
+	fmt.Println(argsLength)
 	return argsLength == 1
 }
 
