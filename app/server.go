@@ -16,7 +16,6 @@ var rexLeadingDigits = regexp.MustCompile(`\d+`)
 func isSimplePing(array []string) bool {
 	rex := rexLeadingDigits.Copy()
 	argsLength, _ := strconv.Atoi(rex.FindString(array[0]))
-	fmt.Println(argsLength)
 	return argsLength == 1
 }
 
@@ -26,17 +25,7 @@ func handleRequest(conn net.Conn) {
 	// multiple request
 	for {
 		buffer := make([]byte, 1500)
-		if _, err := conn.Read(buffer); err != nil {
-			neterr, ok := err.(net.Error)
-			if ok && neterr.Timeout() {
-				fmt.Println("Error: timeout error")
-				break
-			} else if err == io.EOF {
-				fmt.Println("Error: io.EOF error")
-				break
-			}
-			panic(err)
-		}
+		_, err := conn.Read(buffer)
 
 		args := strings.Split(string(buffer), "\n")
 
@@ -61,6 +50,19 @@ func handleRequest(conn net.Conn) {
 		if _, err := conn.Write([]byte(allItems)); err != nil {
 			fmt.Println("Error writing data: ", err.Error())
 			os.Exit(1)
+		}
+
+		// process before checking EOF
+		if err != nil {
+			neterr, ok := err.(net.Error)
+			if ok && neterr.Timeout() {
+				fmt.Println("Error: timeout error")
+				break
+			} else if err == io.EOF {
+				fmt.Println("Error: io.EOF error")
+				break
+			}
+			panic(err)
 		}
 	}
 }
