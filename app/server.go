@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var rexLeadingDigits = regexp.MustCompile(`\d+`)
@@ -62,6 +63,8 @@ func main() {
 
 	for {
 		conn, err := listener.Accept()
+		conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+
 		defer conn.Close()
 
 		if err != nil {
