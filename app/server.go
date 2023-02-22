@@ -28,6 +28,11 @@ var store = dataStore{
 func setData(data []string) {
 	store.data[data[4]] = data[6]
 	store.dataTimestamp[data[4]] = time.Now()
+	if len(data) < 9 {
+		store.expireTime[data[4]] = 0
+		return
+	}
+
 	if strings.ToUpper(strings.TrimSpace(data[8])) == "PX" {
 		millisecond, err := strconv.Atoi(data[10])
 		if err != nil {
