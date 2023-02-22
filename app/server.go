@@ -5,30 +5,59 @@ import (
 	"io"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 type dataStore struct {
-	data map[string]string
-	mu   sync.RWMutex
+	data          map[string]string
+	dataTimestamp map[string]time.Time
+	mu            sync.RWMutex
+	expireTime    map[string]int
 }
 
 var store = dataStore{
-	mu:   sync.RWMutex{},
-	data: map[string]string{},
+	mu:            sync.RWMutex{},
+	data:          map[string]string{},
+	dataTimestamp: map[string]time.Time{},
+	expireTime:    map[string]int{},
 }
 
-func setData(key, value string) {
-	store.data[key] = value
+func setData(data []string) {
+	store.data[data[4]] = data[6]
+	store.dataTimestamp[data[4]] = time.Now()
+	if strings.ToUpper(strings.TrimSpace(data[8])) == "PX" {
+		millisecond, err := strconv.Atoi(data[10])
+		if err != nil {
+			panic(err)
+		}
+		store.expireTime[data[4]] = millisecond
+	} else {
+		store.expireTime[data[4]] = 0
+	}
 }
 
-func retrieveData(key string) string {
+func checkExpiration(data []string) bool {
+	if store.expireTime[data[4]] == 0 {
+		return false
+	}
+
+	retrieveDataTimeStamp := time.Now()
+	setDataTimeStamp := store.dataTimestamp[data[4]]
+	expireTime := store.expireTime[data[4]]
+	return retrieveDataTimeStamp.Sub(setDataTimeStamp) > time.Duration(expireTime)*time.Millisecond
+}
+
+func retrieveData(data []string) string {
 	var respData string
-	if value, ok := store.data[key]; ok {
+	var isExpired bool = checkExpiration(data)
+
+	if value, ok := store.data[data[4]]; ok && !isExpired {
 		respData = fmt.Sprintf("$%d\r\n%s\r\n", len(value), value)
 	} else {
-		respData = "+(nil)\r\n"
+		respData = "$-1\r\n"
 	}
 	return respData
 }
@@ -63,10 +92,10 @@ func handleRequest(conn net.Conn) {
 		case "ECHO":
 			msg = fmt.Sprintf("$%d\r\n%s\r\n", len(respData[4]), respData[4])
 		case "SET":
-			setData(respData[4], respData[6])
+			setData(respData)
 			msg = "+OK\r\n"
 		case "GET":
-			msg = retrieveData(respData[4])
+			msg = retrieveData(respData)
 		default:
 			msg = "-ERR unknown command '" + command + "'\r\n"
 		}
